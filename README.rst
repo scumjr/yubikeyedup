@@ -40,8 +40,6 @@ Plug and flash the YubiKeys (keys are also written to the database)::
 Add a new API key (here, the API key name is ``developers``)::
 
     $ ./tools/dbconf.py -aa developers ./yubikeys.sqlite3
-    New API Key for developers: ckFsWU5scVNXRjVZc3lJUmpIVzU=
-    Your API Key ID is: 1
 
 Run the server::
 
@@ -57,14 +55,22 @@ OpenSSH configuration example
 Here's a summary of `Yubico's documentation
 <https://developers.yubico.com/yubico-pam/Yubikey_and_SSH_via_PAM.html>`_.
 
-Add users to ``/etc/yubimap``::
+Get information about users and API on the machine hosting
+``yubikeys.sqlite3``::
 
-    $ ./tools/dbconf.py -yl /tmp/yubikeys.sqlite3
+    $ ./tools/dbconf.py -yl ./yubikeys.sqlite3
     2 keys into database:
-    [Nickname]              >> [PublicID]
+    [Nickname]              >> [PublicID]            >> [Active]
     gbush                   >> ibhdhehrhkhuifhv      >> 1
     bobama                  >> ibibhdhvhdhbhthb      >> 1
     
+    $ ./tools/dbconf.py -al ./yubikeys.sqlite3
+    1 keys into database:
+    [Id]    >> [Keyname]            >> [Secret]
+    1       >> developers           >> ckFsWU5scVNXRjVZc3lJUmpIVzU=
+
+On the OpenSSH machine, add users to ``/etc/yubimap``::
+
     $ cat /etc/yubimap
     barack:ibibhdhvhdhbhthb
     george:ibhdhehrhkhuifhv
