@@ -138,9 +138,9 @@ class Yubikey(DBConf):
         users = []
         if rowcount[0]:
             self.cur.execute('SELECT nickname, publicname, active FROM yubikeys')
-            self.log('[Nickname]\t\t>> [PublicID]')
+            self.log('[Nickname]\t\t>> [PublicID]\t\t>> [Active]')
             for nickname, publicname, active in self.cur:
-                self.log('%-23s >> %-21s >> %s ' %  (nickname, publicname, active))
+                self.log('%-23s >> %-20s >> %s ' %  (nickname, publicname, active))
                 users.append((nickname, publicname, active))
 
         return users
@@ -237,15 +237,15 @@ class API(DBConf):
     def list(self):
         self.select('api_count_nicknames', [])
         rowcount = self.result[0]
-        self.log(' %d keys into database:' % rowcount)
+        self.log('%d keys into database:' % rowcount)
 
         keys = []
         if rowcount != 0:
-            self.cur.execute('SELECT nickname FROM apikeys')
-            self.log('[Nickname]')
-            for nickname in self.cur:
-                self.log('%-23s' % nickname)
-                keys.append(nickname)
+            self.cur.execute('SELECT id, nickname, secret FROM apikeys')
+            self.log('[Id]\t>> [Keyname]\t\t>> [Secret]')
+            for id, nickname, secret in self.cur:
+                self.log('%-7d >> %-20s >> %s' % (id, nickname, secret))
+                keys.append((id, nickname, secret))
         else:
             self.log('No keys in database')
         return keys
