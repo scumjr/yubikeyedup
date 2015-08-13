@@ -1,11 +1,14 @@
 #!/usr/bin/python
 
-import unittest
+import base64
+import hashlib
+import hmac
 import httplib
 import os
 import re
-import sys
 import subprocess
+import sys
+import unittest
 
 import dbconf
 import dbcreate
@@ -47,6 +50,23 @@ class YubikeyTestCase(YubiserveTestCase):
         data = self.curl('?id=1&otp=%s&nonce=%s' % (valid_otp, nonce))
         m = re.search("^status=OK", data, re.M)
         self.assertTrue(m, msg="Valid yubikey not accepted")
+
+    def testSignature(self):
+        data = self.curl('?id=1&otp=%s&nonce=%s' % (valid_otp, nonce))
+        m = re.search("^status=OK", data, re.M)
+        self.assertTrue(m, msg="Valid yubikey not accepted")
+
+        h = re.findall('h=([^\r]+)', data)
+        self.assertTrue(len(h) == 1, msg="Invalid hash")
+        h = h[0]
+
+        data = data.split('\r\n')
+        data.sort()
+        data = '&'.join(l for l in data if not l.startswith('h=') and l != '')
+        _, _, api_key = [ keys for keys in api.list() if keys[1] == 'test' ][0]
+        otp_hmac = hmac.new(str(api_key), data, hashlib.sha1)
+        otp_hmac = base64.b64encode(otp_hmac.digest())
+        self.assertTrue(otp_hmac == h, msg="Invalid signature")
 
     def testReplayKey(self):
         data = self.curl('?id=1&otp=%s&nonce=%s' % (valid_otp, nonce))
