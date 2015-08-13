@@ -83,7 +83,7 @@ Configure OpenSSH::
 
     $ tail -4 /etc/ssh/sshd_config
     ChallengeResponseAuthentication  no
-    Match User george barack
+    Match User george,barack
         PasswordAuthentication       yes
         AuthenticationMethods        publickey,password
 
