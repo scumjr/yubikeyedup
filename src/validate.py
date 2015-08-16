@@ -68,7 +68,7 @@ class Yubico(Validate):
 
         timestamp = int(plaintext[20:22] + plaintext[18:20] + plaintext[16:18], 16)
         if time >= timestamp and (counter >> 8) == (internalcounter >> 8):
-            return yubistatus.DELAYED_OTP
+            return yubistatus.BAD_OTP
 
         self.sql.update('yubico_update_counter', [internalcounter, timestamp, userid])
 
