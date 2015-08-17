@@ -64,7 +64,7 @@ class YubikeyTestCase(YubiserveTestCase):
         data.sort()
         data = '&'.join(l for l in data if not l.startswith('h=') and l != '')
         _, _, api_key = [ keys for keys in api.list() if keys[1] == 'test' ][0]
-        otp_hmac = hmac.new(str(api_key), data, hashlib.sha1)
+        otp_hmac = hmac.new(base64.b64decode(api_key), data, hashlib.sha1)
         otp_hmac = base64.b64encode(otp_hmac.digest())
         self.assertTrue(otp_hmac == h, msg="Invalid signature")
 
