@@ -4,6 +4,7 @@
 YubiServe Key Management Tool
 '''
 
+import base64
 import os
 import random
 import re
@@ -13,11 +14,9 @@ import time
 
 
 def randomChars(size):
-    alphabet  = [ chr(i) for i in range(ord('a'), ord('z')+1) ]
-    alphabet += [ chr(i) for i in range(ord('A'), ord('Z')+1) ]
-    alphabet += [ chr(i) for i in range(ord('0'), ord('9')+1) ]
-
-    return ''.join(random.choice(alphabet) for i in range(size))
+    with open('/dev/urandom') as fp:
+        data = fp.read(size)
+    return data
 
 
 def usage():
@@ -219,9 +218,9 @@ class API(DBConf):
             lastid = self.result[0]
             id = lastid + 1
 
-        api_key = randomChars(20)
+        api_key = base64.b64encode(randomChars(20))
         self.update('api_add', [nickname, api_key, id])
-        self.log('New API Key for %s: %s' % (nickname, api_key.encode('base64').strip()))
+        self.log('New API Key for %s: %s' % (nickname, api_key))
         self.log('Your API Key ID is: %d' % id)
 
     def delete(self, nickname):
