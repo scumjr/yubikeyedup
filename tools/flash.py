@@ -33,13 +33,20 @@ if __name__ == '__main__':
     aeskey = gen_random(16).encode('hex')
     public = get_public(name).encode('hex')
     public_m = hex2modhex(public)
+    uid = gen_random(6).encode('hex')
 
-    ret = subprocess.call([ 'sudo', 'ykpersonalize', '-1', '-ofixed=h:%s' % public, '-a%s' % aeskey ])
+    cmd = [ 'sudo', 'ykpersonalize',
+            '-1',
+            '-ofixed=h:%s' % public,
+            '-ouid=%s' % uid,
+            '-a%s' % aeskey
+    ]
+    ret = subprocess.call(cmd)
     if ret != 0:
         sys.exit(ret)
 
     cwd = os.path.dirname(os.path.realpath(__file__))
     dbconf = os.path.join(cwd, 'dbconf.py')
     subprocess.call([ dbconf, '-yk', name, db ])
-    subprocess.call([ dbconf, '-ya', name, public_m, '000000000000', aeskey, db ])
+    subprocess.call([ dbconf, '-ya', name, public_m, uid, aeskey, db ])
     subprocess.call([ dbconf, '-yl', db])
