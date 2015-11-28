@@ -56,7 +56,7 @@ class YubiServeHandler:
 
         # ensure API id is valid
         if not self.sql.select('get_api_secret', [self.params['id']]):
-            return self.build_answer(yubistatus.NO_CLIENT, answer)
+            return self.build_answer(yubistatus.NO_SUCH_CLIENT, answer)
 
         api_key = base64.b64decode(self.sql.result[0])
 

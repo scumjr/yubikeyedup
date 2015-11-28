@@ -80,7 +80,7 @@ class YubikeyTestCase(YubiserveTestCase):
     def testbadCRC(self):
         invalid_otp = 'hihrhghufvfirvbegrijgdjhjhtgihcehehtcrgbrhrb'
         data = self.curl('?id=1&otp=%s&nonce=%s' % (invalid_otp, nonce))
-        m = re.search("^status=BAD_OTP", data,re.M)
+        m = re.search("^status=BAD_OTP", data, re.M)
         self.assertTrue(m, msg="Yubikey with Bad CRC")
 
     def testInvalidInput(self):
@@ -93,6 +93,11 @@ class YubikeyTestCase(YubiserveTestCase):
         data = self.curl('?id=1&otp=%s&nonce=%s' % (invalid_otp, nonce))
         m = re.search("^status=MISSING_PARAMETER", data, re.M)
         self.assertTrue(m, msg="invalid otp (contains a 1)")
+
+    def testInvalidId(self):
+        data = self.curl('?id=100&otp=%s&nonce=%s' % (valid_otp, nonce))
+        m = re.search("^status=NO_SUCH_CLIENT", data, re.M)
+        self.assertTrue(m, msg="API id shouldn't be accepted")
 
     def curl(self, params='?id=1&otp=%s' % valid_otp, debug=False, url=yubicotesturl, httpcode=200):
         conn = httplib.HTTPConnection(testserver)
