@@ -50,7 +50,15 @@ if __name__ == '__main__':
             sys.exit(1)
         cmd = [ 'sudo' ] + cmd
 
-    ret = subprocess.call(cmd)
+    try:
+        ret = subprocess.call(cmd)
+    except OSError as e:
+        if e.errno == os.errno.ENOENT:
+            print '%s: command not found.' % cmd[0]
+            sys.exit(1)
+        else:
+            raise
+
     if ret != 0:
         sys.exit(ret)
 
