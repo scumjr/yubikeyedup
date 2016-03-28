@@ -4,6 +4,7 @@
 Write a new AES key to a YubiKey, and store it into a sqlite3 database.
 '''
 
+import distutils.spawn
 import os
 import sys
 import subprocess
@@ -35,12 +36,20 @@ if __name__ == '__main__':
     public_m = hex2modhex(public)
     uid = gen_random(6).encode('hex')
 
-    cmd = [ 'sudo', 'ykpersonalize',
+    cmd = [ 'ykpersonalize',
             '-1',
             '-ofixed=h:%s' % public,
             '-ouid=%s' % uid,
             '-a%s' % aeskey
     ]
+
+    # prefer sudo over running this script with root privileges
+    if os.getuid() != 0:
+        if not distutils.spawn.find_executable('sudo'):
+            print 'Root privileges required.'
+            sys.exit(1)
+        cmd = [ 'sudo' ] + cmd
+
     ret = subprocess.call(cmd)
     if ret != 0:
         sys.exit(ret)
