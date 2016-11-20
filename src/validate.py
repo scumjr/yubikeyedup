@@ -1,6 +1,7 @@
 import re
 
-from Crypto.Cipher import AES
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
 
 from sql import *
 import yubistatus
@@ -53,8 +54,12 @@ class Yubico(Validate):
             return yubistatus.BAD_OTP
         aeskey, internalname, counter, time = self.sql.result
 
-        aes = AES.new(aeskey.decode('hex'), AES.MODE_ECB)
-        plaintext = aes.decrypt(self.modhexdecode(token)).encode('hex')
+        cipher = Cipher(algorithms.AES(aeskey.decode('hex')),
+                        modes.ECB(),
+                        default_backend())
+        decryptor = cipher.decryptor()
+        plaintext = (decryptor.update(self.modhexdecode(token)) +
+                     decryptor.finalize()).encode('hex')
 
         if internalname != plaintext[:12]:
             return yubistatus.BAD_OTP
