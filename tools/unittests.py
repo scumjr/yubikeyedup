@@ -126,6 +126,11 @@ def wait_for_server(testserver=testserver):
 if __name__ == '__main__':
     filename = '/tmp/yubiservetest.sqlite3'
 
+    try:
+        os.unlink(filename)
+    except OSError:
+        pass
+
     # create database
     dbcreate.create_db(filename)
 
@@ -138,10 +143,11 @@ if __name__ == '__main__':
     p = subprocess.Popen([ './src/yubiserve.py', '--db', filename ], stderr=open('/dev/null', 'w'))
     wait_for_server()
 
-    suite = unittest.TestLoader().loadTestsFromTestCase(YubikeyTestCase)
-    unittest.TextTestRunner().run(suite)
+    try:
+        suite = unittest.TestLoader().loadTestsFromTestCase(YubikeyTestCase)
+        unittest.TextTestRunner().run(suite)
+    finally:
+        api.delete('test')
+        os.unlink(filename)
 
-    api.delete('test')
-    os.unlink(filename)
-
-    p.kill()
+        p.kill()
