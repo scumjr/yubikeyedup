@@ -8,6 +8,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import unittest
 
 import dbconf
@@ -112,6 +113,17 @@ class YubikeyTestCase(YubiserveTestCase):
         return data
 
 
+def wait_for_server(testserver=testserver):
+    while True:
+        try:
+            conn = httplib.HTTPConnection(testserver)
+            conn.request('GET', "/")
+            conn.close()
+            return
+        except IOError:
+            time.sleep(0.1)
+
+
 if __name__ == '__main__':
     filename = '/tmp/yubiservetest.sqlite3'
 
@@ -125,6 +137,7 @@ if __name__ == '__main__':
     yubikey = dbconf.Yubikey(filename, verbose=False)
 
     p = subprocess.Popen([ './src/yubiserve.py', '--db', filename ], stderr=open('/dev/null', 'w'))
+    wait_for_server()
 
     suite = unittest.TestLoader().loadTestsFromTestCase(YubikeyTestCase)
     unittest.TextTestRunner().run(suite)
