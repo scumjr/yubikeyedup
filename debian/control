@@ -1,0 +1,32 @@
+Source: yubikeyedup
+Maintainer: jaroug <jaroug+yubikeyedup@gmail.com>
+Section: python
+Priority: optional
+Build-Depends: python-setuptools (>= 0.6b3), python-all (>= 2.6.6-3), debhelper (>= 9)
+Standards-Version: 3.9.1
+
+Package: python-yubikeyedup
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}
+Description: Yet Another YubiKey OTP Validation Server
+ Yet Another YubiKey OTP Validation Server
+ =========================================
+ .
+ Several other implementations are available. Some of them are not secure enough:
+ .
+  * `YubiServe <https://code.google.com/p/yubico-yubiserve>`_ (Python). `SQL
+    injections
+    <https://code.google.com/p/yubico-yubiserve/issues/detail?id=38>`_,
+  * `yubiserver <http://www.include.gr/debian/yubiserver/>`_ (C). SQL injections
+    (CVE-2015-0842), buffer overflows (CVE-2015-0843).
+ .
+ Official implementation is written in PHP (sigh...), and I don't know Go enough
+ to audit digintLab's implementation:
+ .
+  * `yubikey-val <https://developers.yubico.com/yubikey-val/>`_ (PHP) by Yubico,
+  * `yubikey-server <https://github.com/digintLab/yubikey-server>`_ (Go).
+ .
+ This is a complete rewrite of `YubiServe
+ <https://code.google.com/p/yubico-yubiserve>`_ because the original project
+ seems not to be designed with security in mind. Copy-and-paste programming made
+
