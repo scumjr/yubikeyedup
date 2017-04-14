@@ -42,9 +42,12 @@ def create_db(filename):
     conn.commit()
     conn.close()
 
-if __name__ == '__main__':
+def main():
     if len(sys.argv) != 2:
 	print 'Usage: %s <db.sqlite3>' % sys.argv[0]
         sys.exit(0)
 
     create_db(sys.argv[1])
+
+if __name__ == '__main__':
+    main()
