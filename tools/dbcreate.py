@@ -32,7 +32,7 @@ TABLES = [
 
 def create_db(filename):
     if os.path.exists(filename):
-        print '%s already exists' % filename
+        print('%s already exists' % filename)
         sys.exit(1)
 
     conn = sqlite3.connect(filename)
@@ -44,7 +44,7 @@ def create_db(filename):
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-	print 'Usage: %s <db.sqlite3>' % sys.argv[0]
+        print('Usage: %s <db.sqlite3>' % sys.argv[0])
         sys.exit(0)
 
     create_db(sys.argv[1])

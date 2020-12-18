@@ -3,7 +3,7 @@
 import base64
 import hashlib
 import hmac
-import httplib
+import http.client
 import os
 import re
 import subprocess
@@ -14,7 +14,7 @@ import dbconf
 import dbcreate
 
 testuser = "nelg"
-testserver = "localhost:8000"
+testserver = "localhost:8001"
 yubicotesturl = "/wsapi/2.0/verify"
 valid_otp = 'hihrhghufvfibbbekurednelnklnulclbiubvjrenlii'
 nonce = 'nILSu3qRwoDldXjgU1'
@@ -64,8 +64,8 @@ class YubikeyTestCase(YubiserveTestCase):
         data.sort()
         data = '&'.join(l for l in data if not l.startswith('h=') and l != '')
         _, _, api_key = [ keys for keys in api.list() if keys[1] == 'test' ][0]
-        otp_hmac = hmac.new(base64.b64decode(api_key), data, hashlib.sha1)
-        otp_hmac = base64.b64encode(otp_hmac.digest())
+        otp_hmac = hmac.new(base64.b64decode(api_key), data.encode('utf-8'), hashlib.sha1)
+        otp_hmac = base64.b64encode(otp_hmac.digest()).decode('utf-8')
         self.assertTrue(otp_hmac == h, msg="Invalid signature")
 
     def testReplayKey(self):
@@ -100,22 +100,22 @@ class YubikeyTestCase(YubiserveTestCase):
         self.assertTrue(m, msg="API id shouldn't be accepted")
 
     def curl(self, params='?id=1&otp=%s' % valid_otp, debug=False, url=yubicotesturl, httpcode=200):
-        conn = httplib.HTTPConnection(testserver)
+        conn = http.client.HTTPConnection(testserver)
         conn.request('GET', url + params)
         r = conn.getresponse()
         self.assertTrue(r.status == httpcode)
-        data = r.read()
+        data = r.read().decode('utf-8')
         conn.close()
         if debug:
-            print 'Request: %s\n' % (url+params)
-            print data
+            print('Request: %s\n' % (url+params))
+            print(data)
         return data
 
 
 def wait_for_server(testserver=testserver):
     while True:
         try:
-            conn = httplib.HTTPConnection(testserver)
+            conn = http.client.HTTPConnection(testserver)
             conn.request('GET', "/")
             conn.close()
             return
@@ -140,7 +140,7 @@ if __name__ == '__main__':
 
     yubikey = dbconf.Yubikey(filename, verbose=False)
 
-    p = subprocess.Popen([ './src/yubiserve.py', '--db', filename ], stderr=open('/dev/null', 'w'))
+    p = subprocess.Popen([ './src/yubiserve.py', '--db', filename, '--port=8001' ], stderr=open('/dev/null', 'w'))
     wait_for_server()
 
     try:

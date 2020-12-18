@@ -1,6 +1,6 @@
 import re
 
-from Crypto.Cipher import AES
+from Cryptodome.Cipher import AES
 
 from sql import *
 import yubistatus
@@ -16,7 +16,7 @@ class Yubico(Validate):
     modhex = ''.join(dict([ ('cbdefghijklnrtuv'[i], '0123456789abcdef'[i]) for i in range(16)] ).get(chr(j), '?') for j in range(256))
 
     def set_params(self, params, answer):
-        if not params.has_key('nonce'):
+        if 'nonce' not in params:
             return yubistatus.MISSING_PARAMETER
 
         answer['otp'] = params['otp']
@@ -28,12 +28,12 @@ class Yubico(Validate):
         return yubistatus.OK
 
     def modhexdecode(self, string):
-        return string.translate(self.modhex).decode('hex')
+        return bytes.fromhex(string.translate(self.modhex))
 
     def CRC(self, data):
         crc = 0xffff
         for b in data:
-            crc ^= (ord(b) & 0xff)
+            crc ^= (b & 0xff)
             for j in range(0, 8):
                 n = crc & 1
                 crc >>= 1
@@ -53,13 +53,14 @@ class Yubico(Validate):
             return yubistatus.BAD_OTP
         aeskey, internalname, counter, time = self.sql.result
 
-        aes = AES.new(aeskey.decode('hex'), AES.MODE_ECB)
-        plaintext = aes.decrypt(self.modhexdecode(token)).encode('hex')
+        aes = AES.new(bytes.fromhex(aeskey), AES.MODE_ECB)
+        plaintext = aes.decrypt(self.modhexdecode(token)).hex()
 
         if internalname != plaintext[:12]:
             return yubistatus.BAD_OTP
 
-        if self.CRC(plaintext[:32].decode('hex')) != 0xf0b8:
+        # if self.CRC(plaintext[:32].decode('hex')) != 0xf0b8:
+        if self.CRC(bytes.fromhex(plaintext[:32])) != 0xf0b8:
             return yubistatus.BAD_OTP
 
         internalcounter = int(plaintext[14:16] + plaintext[12:14] + plaintext[22:24], 16)
@@ -81,7 +82,7 @@ class OATH(Validate):
             publicid = otp[0:12]
             oath = params['otp'][12:]
         elif len(otp) in [ 6, 8 ]:
-            if not params.has_key('publicid'):
+            if 'publicid' not in params:
                 return yubistatus.MISSING_PARAMETER
             publicid = params['publicid']
             oath = params['otp']

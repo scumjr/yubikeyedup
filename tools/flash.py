@@ -16,7 +16,7 @@ def hex2modhex(string):
     return string.translate(modhex)
 
 def gen_random(size):
-    with open('/dev/urandom') as fp:
+    with open('/dev/urandom','rb') as fp:
         s = fp.read(size)
     return s
 
@@ -25,16 +25,16 @@ def get_public(name):
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print 'Usage: %s <name> <db.sqlite3>' % sys.argv[0]
-        print 'eg: %s bobama db/yubikeys.sqlite3' % sys.argv[0]
+        print('Usage: %s <name> <db.sqlite3>' % sys.argv[0])
+        print('eg: %s bobama db/yubikeys.sqlite3' % sys.argv[0])
         sys.exit(0)
 
     name = sys.argv[1]
     db = sys.argv[2]
-    aeskey = gen_random(16).encode('hex')
-    public = get_public(name).encode('hex')
+    aeskey = gen_random(16).hex()
+    public = get_public(name).encode('utf-8').hex()
     public_m = hex2modhex(public)
-    uid = gen_random(6).encode('hex')
+    uid = gen_random(6).hex()
 
     cmd = [ 'ykpersonalize',
             '-1',
@@ -43,10 +43,12 @@ if __name__ == '__main__':
             '-a%s' % aeskey
     ]
 
+    print(cmd)
+
     # prefer sudo over running this script with root privileges
     if os.getuid() != 0:
         if not distutils.spawn.find_executable('sudo'):
-            print 'Root privileges required.'
+            print('Root privileges required.')
             sys.exit(1)
         cmd = [ 'sudo' ] + cmd
 
@@ -54,13 +56,13 @@ if __name__ == '__main__':
         ret = subprocess.call(cmd)
     except OSError as e:
         if e.errno == os.errno.ENOENT:
-            print '%s: command not found.' % cmd[0]
+            print('%s: command not found.' % cmd[0])
             sys.exit(1)
         else:
             raise
 
-    if ret != 0:
-        sys.exit(ret)
+    # if ret != 0:
+    #     sys.exit(ret)
 
     cwd = os.path.dirname(os.path.realpath(__file__))
     dbconf = os.path.join(cwd, 'dbconf.py')
