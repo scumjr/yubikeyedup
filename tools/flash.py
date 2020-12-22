@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Write a new AES key to a YubiKey, and store it into a sqlite3 database.
