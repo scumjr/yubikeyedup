@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 YubiServe Key Management Tool
@@ -14,28 +14,29 @@ import time
 
 
 def randomChars(size):
-    with open('/dev/urandom') as fp:
+    data = bytes()
+    with open('/dev/urandom','rb') as fp:
         data = fp.read(size)
     return data
 
 
 def usage():
-    print 'Usage: %s <options> <db.sqlite3>\n' % sys.argv[0]
-    print ' -ya <nickname> <publicid> <secretid> <aeskey>\tAdd a new Yubikey'
-    print ' -yk <nickname>\t\t\t\t\tDelete a Yubikey'
-    print ' -yd <nickname>\t\t\t\t\tDisable a Yubikey'
-    print ' -ye <nickname>\t\t\t\t\tEnable a Yubikey'
-    print ' -yl\t\t\t\t\t\tList all yubikeys in database\n'
+    print('Usage: %s <options> <db.sqlite3>\n' % sys.argv[0])
+    print(' -ya <nickname> <publicid> <secretid> <aeskey>\tAdd a new Yubikey')
+    print(' -yk <nickname>\t\t\t\t\tDelete a Yubikey')
+    print(' -yd <nickname>\t\t\t\t\tDisable a Yubikey')
+    print(' -ye <nickname>\t\t\t\t\tEnable a Yubikey')
+    print(' -yl\t\t\t\t\t\tList all yubikeys in database\n')
 
-    print ' -ha <nickname> <publicid> <key>\t\tAdd a new OATH token'
-    print ' -hk <nickname>\t\t\t\t\tDelete a OATH token'
-    print ' -hd <nickname>\t\t\t\t\tDisable a OATH token'
-    print ' -he <nickname>\t\t\t\t\tEnable a OATH token'
-    print ' -hl\t\t\t\t\t\tList all OATH tokens in database\n'
+    print(' -ha <nickname> <publicid> <key>\t\tAdd a new OATH token')
+    print(' -hk <nickname>\t\t\t\t\tDelete a OATH token')
+    print(' -hd <nickname>\t\t\t\t\tDisable a OATH token')
+    print(' -he <nickname>\t\t\t\t\tEnable a OATH token')
+    print(' -hl\t\t\t\t\t\tList all OATH tokens in database\n')
 
-    print ' -aa <keyname>\t\t\t\t\tGenerate an API Key'
-    print ' -ak <keyname>\t\t\t\t\tRemove an API Key'
-    print ' -al\t\t\t\t\t\tList all API Keys in database'
+    print(' -aa <keyname>\t\t\t\t\tGenerate an API Key')
+    print(' -ak <keyname>\t\t\t\t\tRemove an API Key')
+    print(' -al\t\t\t\t\t\tList all API Keys in database')
 
     sys.exit(0)
 
@@ -76,14 +77,14 @@ class DBConf:
 
     def log(self, msg):
         if self.verbose:
-            print msg
+            print(msg)
 
 
 class Yubikey(DBConf):
     def add(self, nickname, publicid, secretid, aeskey):
         if len(nickname) > 16 or len(publicid) > 16 or len(secretid) > 12 or len(aeskey) > 32:
-            print 'Nickname and publicid must be max 16 characters long.'
-            print 'Secretid must be 12 characters max, aeskey must be 32 characters max.'
+            print('Nickname and publicid must be max 16 characters long.')
+            print('Secretid must be 12 characters max, aeskey must be 32 characters max.')
             return -1
 
         self.select('y_count_nickname', [nickname, publicid])
@@ -147,8 +148,8 @@ class Yubikey(DBConf):
 class OATH(DBConf):
     def add(self, nickname, publicid, key):
         if len(nickname) > 16 or len(publicid) > 16 or len(key) > 40:
-            print 'Nickname and publicid must be max 16 characters long.'
-            print 'Secret key must be 40 characters max.'
+            print('Nickname and publicid must be max 16 characters long.')
+            print('Secret key must be 40 characters max.')
             return -1
 
         self.select('oath_count_nickname', [nickname, publicid])
@@ -273,7 +274,7 @@ if __name__ == '__main__':
     if len(argv) == 0:
         usage()
 
-    if not options.has_key(argv[0]):
+    if argv[0] not in options:
         usage()
 
     n, klass, fname = options[argv[0]]
@@ -282,7 +283,7 @@ if __name__ == '__main__':
 
     filename = argv[-1]
     if not os.path.exists(filename):
-        print 'SQLite database "%s" doesn\'t exist' % filename
+        print('SQLite database "%s" doesn\'t exist' % filename)
         sys.exit(1)
 
     args = argv[1:-1]

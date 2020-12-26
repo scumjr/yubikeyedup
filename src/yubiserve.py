@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import BaseHTTPServer
-import SocketServer
+import http.server
+import socketserver
 import base64
 import hashlib
 import hmac
@@ -13,8 +13,8 @@ import socket
 import sys
 import threading
 import time
-import urllib
-import urlparse
+import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 
 import yubistatus
 import validate
@@ -29,20 +29,20 @@ class YubiServeHandler:
         self.vclass = vclass
 
     def sign_message(self, answer, api_key):
-        data = [ '%s=%s' % (k, v) for (k, v) in answer.iteritems() ]
+        data = [ '%s=%s' % (k, v) for (k, v) in answer.items() ]
         data.sort()
         data = '&'.join(data)
 
-        otp_hmac = hmac.new(api_key, str(data), hashlib.sha1)
-        otp_hmac = base64.b64encode(otp_hmac.digest())
+        otp_hmac = hmac.new(api_key, data.encode('utf-8'), hashlib.sha1)
+        otp_hmac = base64.b64encode(otp_hmac.digest()).decode('utf-8')
 
         return otp_hmac
 
-    def build_answer(self, status, answer, api_key=''):
+    def build_answer(self, status, answer, api_key=bytes()):
         answer['status'] = status
         answer['h'] = self.sign_message(answer, api_key)
 
-        data = '\r\n'.join([ '%s=%s' % (k, v) for (k, v) in answer.iteritems() ])
+        data = '\r\n'.join([ '%s=%s' % (k, v) for (k, v) in answer.items() ])
         data += '\r\n'
 
         return data
@@ -51,7 +51,7 @@ class YubiServeHandler:
         answer = { 't': time.strftime("%Y-%m-%dT%H:%M:%S"), 'otp': '' }
 
         # API id and OTP are required
-        if not self.params.has_key('id') or not self.params.has_key('otp'):
+        if 'id' not in self.params or 'otp' not in self.params:
             return self.build_answer(yubistatus.MISSING_PARAMETER, answer)
 
         # ensure API id is valid
@@ -68,8 +68,8 @@ class YubiServeHandler:
         return self.build_answer(status, answer, api_key)
 
 
-class YubiHTTPServer(BaseHTTPServer.BaseHTTPRequestHandler):
-    __base = BaseHTTPServer.BaseHTTPRequestHandler
+class YubiHTTPServer(http.server.BaseHTTPRequestHandler):
+    __base = http.server.BaseHTTPRequestHandler
     __base_handle = __base.handle
 
     server_version = 'YubiKeyedUp/1.0'
@@ -88,12 +88,12 @@ class YubiHTTPServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def __init__(self, request, client_address, server):
         global sqlite_db
         self.sql_connection = connect_to_db(sqlite_db)
-        return BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, request, client_address, server)
+        return http.server.BaseHTTPRequestHandler.__init__(self, request, client_address, server)
 
     def setup(self):
         self.connection = self.request
-        self.rfile = socket._fileobject(self.request, 'rb', self.rbufsize)
-        self.wfile = socket._fileobject(self.request, 'wb', self.wbufsize)
+        self.rfile = self.request.makefile( 'rb', self.rbufsize)
+        self.wfile = self.request.makefile( 'wb', self.wbufsize)
 
     def getToDict(self, qs):
         dict = {}
@@ -101,15 +101,15 @@ class YubiHTTPServer(BaseHTTPServer.BaseHTTPRequestHandler):
             if not '=' in singleValue:
                 continue
             key, value = singleValue.split('=', 1)
-            value = urllib.unquote_plus(value)
-            if self.PARAM_REGEXP.has_key(key) and re.match(self.PARAM_REGEXP[key], value):
+            value = urllib.parse.unquote_plus(value)
+            if key in self.PARAM_REGEXP and re.match(self.PARAM_REGEXP[key], value):
                 dict[key] = value
         return dict
 
     def do_GET(self):
-        url = urlparse.urlparse(self.path, 'http')
+        url = urllib.parse.urlparse(self.path, 'http')
 
-        if self.vclasses.has_key(url.path):
+        if url.path in self.vclasses:
             params = self.getToDict(url.query)
             vclass = self.vclasses[url.path]
             handler = YubiServeHandler(self.sql_connection, params, vclass)
@@ -122,10 +122,10 @@ class YubiHTTPServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', content_type)
         self.end_headers()
-        self.wfile.write(data)
+        self.wfile.write(data.encode('utf-8'))
 
 
-class ThreadingHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
+class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     pass
 
 
