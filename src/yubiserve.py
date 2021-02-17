@@ -134,12 +134,13 @@ def stop_signal_handler(signum, frame):
     sys.exit(0)
 
 
-if __name__ == '__main__':
+def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
     parser.add_option('-d', '--db', default='./yubikeys.sqlite3', dest='db')
     parser.add_option('-a', '--address', default='0.0.0.0', dest='host')
     parser.add_option('-p', '--port', default='8000', dest='port')
     (options, args) = parser.parse_args()
+    global sqlite_db
     sqlite_db = options.db
 
     yubiserveHTTP = ThreadingHTTPServer((options.host, int(options.port)), YubiHTTPServer)
@@ -151,3 +152,7 @@ if __name__ == '__main__':
     http_thread.start()
 
     signal.pause()
+
+
+if __name__ == '__main__':
+    main()

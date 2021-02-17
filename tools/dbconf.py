@@ -251,7 +251,7 @@ class API(DBConf):
         return keys
 
 
-if __name__ == '__main__':
+def main():
     options = {
         '-ya': (4, Yubikey, 'add'),
         '-yk': (1, Yubikey, 'delete'),
@@ -290,3 +290,7 @@ if __name__ == '__main__':
     function = getattr(klass, fname)
     db = klass(filename)
     function(db, *args)
+
+
+if __name__ == '__main__':
+    main()
