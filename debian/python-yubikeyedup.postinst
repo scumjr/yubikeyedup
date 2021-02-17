@@ -1,0 +1,28 @@
+#!/bin/sh 
+set -e
+
+case "$1" in
+    configure)
+        # create yubikeyedup group and user
+        if ! grep -q yubikeyedup /etc/passwd; then
+                addgroup --system yubikeyedup
+                adduser --system --home /var/lib/yubikeyedup --gecos "Yubikeyedup Daemon" --disabled-login --no-create-home yubikeyedup --ingroup yubikeyedup
+        fi
+
+        mkdir -p /var/lib/yubikeyedup
+        chown yubikeyedup:yubikeyedup /var/lib/yubikeyedup
+
+        mkdir -p /var/log/yubikeyedup
+        chown yubikeyedup:yubikeyedup /var/log/yubikeyedup
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#

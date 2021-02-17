@@ -1,0 +1,7 @@
+/var/log/yubikeyedup/yubikeyedup.log {
+	daily
+	missingok
+	rotate 90
+	compress
+	copytruncate
+}
